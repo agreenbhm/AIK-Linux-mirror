@@ -139,7 +139,7 @@ if [ "$(echo $imgtest | awk '{ print $2 }' | cut -d, -f1)" = "bootimg" ]; then
 else
   cd ..;
   cleanup;
-  echo "Unrecognized format.";
+  echo "Unrecognized format.-";
   abort;
   exit 1;
 fi;
@@ -330,9 +330,15 @@ fi;
 mv -f "$(ls *-*ramdisk)" "$file-${vendor}ramdisk.cpio$compext" 2>/dev/null;
 cd ..;
 if [ "$ramdiskcomp" = "data" ]; then
-  echo "Unrecognized format.";
-  abort;
-  exit 1;
+  binwalk -e "$(pwd)/split_img/$file-${vendor}ramdisk.cpio"
+  rm "$(pwd)/_$file-${vendor}ramdisk.cpio.extracted/"*.gz
+  cp "$(pwd)/_$file-${vendor}ramdisk.cpio.extracted/"* "$(pwd)/split_img/$file-${vendor}ramdisk.cpio"
+  echo "Unrecognized format.--";
+  ramdiskcomp="cpio"
+  unpackcmd="cat"
+  compext=""
+  #abort;
+  #exit 1;
 fi;
 
 echo " ";
@@ -354,12 +360,12 @@ else
   $sudo chown 0:0 ramdisk 2>/dev/null;
   cd ramdisk;
   $unpackcmd "../split_img/$file-${vendor}ramdisk.cpio$compext" | $sudo $cpio -i -d --no-absolute-filenames;
-  if [ ! $? -eq "0" ]; then
-    [ "$nosudo" ] && echo "Unpacking failed, try without --nosudo.";
-    cd ..;
-    abort;
-    exit 1;
-  fi;
+  #if [ ! $? -eq "0" ]; then
+  #  [ "$nosudo" ] && echo "Unpacking failed, try without --nosudo.";
+  #  cd ..;
+  #  abort;
+  #  exit 1;
+  #fi;
   cd ..;
 fi;
 
